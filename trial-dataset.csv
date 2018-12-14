@@ -1,4 +1,4 @@
-Song,Genre,BPM,Length (s),State
+﻿Song Name,Genre,BPM,Duration,State
 "Sincerely, Me",Musical,98,222,a
 Cuphead Rap,Indie,115,231,c
 Grace Kelly,Pop,122,187,b
@@ -13,12 +13,12 @@ Gelevant,Musical,135,141,c
 Perfect,Electro Swing,120,192,b
 Iridium,Bagpipe,128,248,c
 Alba,Bagpipe,128,214,b
-Shake that bagpipe,Bagpipe,138,228,a
+Shake That Bagpipe,Bagpipe,138,228,a
 Marie's Wedding,Celtic,96,226,c
-Let's face it I'm cute,Electro Swing,108,216,c
-The cat and the moon,Musical,107,235,c
-In the middle,Pop,111,181,b
-What you gone,Pop,100,143,a
-Waving through a window,Musical,146,236,a
+Let's Face it I'm Cute,Electro Swing,108,216,c
+The Cat and the Moon,Musical,107,235,c
+In the Middle,Pop,111,181,b
+Want You Gone,Pop,100,143,a
+Waving Through a Window,Musical,146,236,a
 Gryffindor Rally Cry,Indie,124,188,b
 Kowalski Rag,Film music,100,312,b
