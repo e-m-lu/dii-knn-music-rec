@@ -16,7 +16,7 @@ import codecs
 def loadDataset(filename, split, trainingSet=[] , testSet=[]):
   with open(filename, 'rb') as csvfile:
       #lines = csv.reader(csvfile)
-      lines = csv.reader(codecs.open('sample-input.txt', 'rU', 'utf-16')) #exclude null
+      lines = csv.reader(codecs.open('sample-input.csv', 'rU', 'utf-16')) #exclude null
       dataset = list(lines)
       #print len(dataset) # need a larger dataset
       for x in range(len(dataset)): # number of rows
@@ -41,13 +41,13 @@ def getNeighbors(trainingSet, testInstance, k):
   for x in range(len(trainingSet)):
     dist = euclideanDistance(testInstance, trainingSet[x], length)
     distances.append((trainingSet[x], dist))
-  distances.sort(key=operator.itemgetter(1))
+  distances.sort(key=operator.itemgetter(1)) # sort ascendingly based on distance
   neighbors = []
   for x in range(k):
-    neighbors.append(distances[x][0])
+    neighbors.append(distances[x][0]) # extract the top k neighbors
   return neighbors
  
-# Each neighbor has their own attributes, the most common attributes among these neighbors will be selected as prediction
+# Each neighbor might have different classes, the most frequent class among these neighbors will be selected as prediction
 def getResponse(neighbors):
   classVotes = {}
   for x in range(len(neighbors)):
@@ -57,13 +57,13 @@ def getResponse(neighbors):
     else:
       classVotes[response] = 1
   sortedVotes = sorted(classVotes.iteritems(), key=operator.itemgetter(1), reverse=True)
-  return sortedVotes[0][0]
+  return sortedVotes[0][0] # return the most frequent class
  
 # Sums the total correct predictions and returns the accuracy as a percentage of correct classifications
 def getAccuracy(testSet, predictions):
   correct = 0
   for x in range(len(testSet)):
-    if testSet[x][-1] == predictions[x]:
+    if testSet[x][-1] == predictions[x]: # correct if item in the last column matches the prediction
       correct += 1
   return (correct/float(len(testSet))) * 100.0
   
@@ -72,12 +72,12 @@ def main():
   trainingSet=[]
   testSet=[]
   split = 0.67
-  loadDataset('sample-input.txt', split, trainingSet, testSet) #don't forget the extension
+  loadDataset('sample-input.csv', split, trainingSet, testSet)
   print 'Train set: ' + repr(len(trainingSet))
   print 'Test set: ' + repr(len(testSet))
   # generate predictions
   predictions=[]
-  k = 3
+  k = 3 # number of neighbors we want to look at
   for x in range(len(testSet)):
     neighbors = getNeighbors(trainingSet, testSet[x], k)
     result = getResponse(neighbors)
