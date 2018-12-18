@@ -21,7 +21,7 @@ def loadDataset(filename, split, trainingSet=[] , testSet=[]):
       #print len(dataset) # need a larger dataset
       for x in range(len(dataset)): # number of rows
           for y in range(3): # number of columns except the outcome to be predicted
-              dataset[x][y] = float(dataset[x][y]) # convert datatype to float, treated as a 2D array
+              dataset[x][y] = float(dataset[x][y]) # convert all items to float, treated as a 2D matrix
           if random.random() < split: # split (based on a given ratio) the dataset into two lists randomly: trainigset and testset
               trainingSet.append(dataset[x])
           else:
