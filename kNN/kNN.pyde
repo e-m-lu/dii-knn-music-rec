@@ -3,6 +3,7 @@ import csv
 import random
 import math
 import operator
+import codecs
 
 #cwd = os.getcwd()
 #files = os.listdir(cwd)
@@ -11,18 +12,22 @@ import operator
 #os.chdir(r'C:\Users\Fei\Documents\Processing\kNN')
 #file = open('iris.data.txt')
 
-def loadDataset(filename, split, trainingSet=[] , testSet=[]): #loading csv
+# Load input csv file
+def loadDataset(filename, split, trainingSet=[] , testSet=[]):
   with open(filename, 'rb') as csvfile: #open in readmode as binary
-      lines = csv.reader(csvfile) 
+      #lines = csv.reader(csvfile) 
+      lines = csv.reader(codecs.open('sample-input.txt', 'rU', 'utf-16')) #remove null values
       dataset = list(lines) # prepare dataset
-      for x in range(len(dataset)-1): # number of rows - 1
-          for y in range(4): # number of columns
-              dataset[x][y] = float(dataset[x][y]) #convert the table float
-          if random.random() < split: # split the dataset
+      #print len(dataset) # need a larger dataset
+      for x in range(len(dataset)): # number of rows
+          for y in range(3): # number of columns except the outcome to be predicted
+              dataset[x][y] = float(dataset[x][y]) # convert datatype to float
+          if random.random() < split: # split the dataset into trainigset and testset randomly
               trainingSet.append(dataset[x])
           else:
               testSet.append(dataset[x])
- 
+
+# Calculate the distance based on S(sqrt(instance1[i]-instance2[i]))
 def euclideanDistance(instance1, instance2, length):
   distance = 0
   for x in range(length):
@@ -64,7 +69,7 @@ def main():
   trainingSet=[]
   testSet=[]
   split = 0.67
-  loadDataset('iris.data', split, trainingSet, testSet)
+  loadDataset('sample-input.txt', split, trainingSet, testSet) #don't forget the extension
   print 'Train set: ' + repr(len(trainingSet))
   print 'Test set: ' + repr(len(testSet))
   # generate predictions
