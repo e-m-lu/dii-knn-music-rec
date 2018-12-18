@@ -14,26 +14,27 @@ import codecs
 
 # Load input csv file
 def loadDataset(filename, split, trainingSet=[] , testSet=[]):
-  with open(filename, 'rb') as csvfile: #open in readmode as binary
-      #lines = csv.reader(csvfile) 
-      lines = csv.reader(codecs.open('sample-input.txt', 'rU', 'utf-16')) #remove null values
-      dataset = list(lines) # prepare dataset
+  with open(filename, 'rb') as csvfile:
+      #lines = csv.reader(csvfile)
+      lines = csv.reader(codecs.open('sample-input.txt', 'rU', 'utf-16')) #exclude null
+      dataset = list(lines)
       #print len(dataset) # need a larger dataset
       for x in range(len(dataset)): # number of rows
           for y in range(3): # number of columns except the outcome to be predicted
-              dataset[x][y] = float(dataset[x][y]) # convert datatype to float
-          if random.random() < split: # split the dataset into trainigset and testset randomly
+              dataset[x][y] = float(dataset[x][y]) # convert datatype to float, treated as a 2D array
+          if random.random() < split: # split (based on a given ratio) the dataset into two lists randomly: trainigset and testset
               trainingSet.append(dataset[x])
           else:
               testSet.append(dataset[x])
 
-# Calculate the distance based on S(sqrt(instance1[i]-instance2[i]))
+# Calculate the euclidean distance between any two given instances: sqrt(sum of(squared(instance1[i]-instance2[i])))
 def euclideanDistance(instance1, instance2, length):
   distance = 0
   for x in range(length):
     distance += pow((instance1[x] - instance2[x]), 2)
   return math.sqrt(distance)
- 
+
+# Returns k most similar neighbors from the training set for a given test instance
 def getNeighbors(trainingSet, testInstance, k):
   distances = []
   length = len(testInstance)-1
@@ -46,6 +47,7 @@ def getNeighbors(trainingSet, testInstance, k):
     neighbors.append(distances[x][0])
   return neighbors
  
+# Each neighbor has their own attributes, the most common attributes among these neighbors will be selected as prediction
 def getResponse(neighbors):
   classVotes = {}
   for x in range(len(neighbors)):
@@ -57,6 +59,7 @@ def getResponse(neighbors):
   sortedVotes = sorted(classVotes.iteritems(), key=operator.itemgetter(1), reverse=True)
   return sortedVotes[0][0]
  
+# Sums the total correct predictions and returns the accuracy as a percentage of correct classifications
 def getAccuracy(testSet, predictions):
   correct = 0
   for x in range(len(testSet)):
