@@ -33,11 +33,9 @@ GENRE_INDEX = {
     'Classical': 8,
     'Dance': 9,
     'Celtic': 10,
-    'Pop': 11,
-    'Game': 12,
-    'Clasical': 13,
-    'Jazz': 14,
-    'Industrial': 15
+    'Game': 11,
+    'Clasical': 12,
+    'Industrial': 13
 }
 
 MODE_HRS = [55, 65, 75, 85, 95] # values for target HR levels
@@ -160,7 +158,7 @@ class MusicRecommender(object):
             bpm_se = (v['BPM_norm'] - self.user_prefer['BPM_norm'])**2
             genre_diff = (v['Genre_onehot'] - self.user_prefer['Genre_onehot'])
             genre_se = genre_diff.T.dot(genre_diff)
-            return math.sqrt(hr_se + bpn_se + genre_se)
+            return math.sqrt(hr_se + bpm_se + genre_se)
         return sorted(self.data.items(), key=lambda x: __score(x[1], hr))[:k]
 
     def next_music(self):
@@ -179,7 +177,7 @@ class MusicRecommender(object):
             music_prob[ID] *= prefer_score
         music_prob.pop(self.cur_music_id, None)
         self.cur_music_id = self.get_max(music_prob)
-        music = self.data[self.cur_mpusic_id]
+        music = self.data[self.cur_music_id]
         return '%s \nGenre: %s | %dBPM' % (music['ID'], music['Genre'], music['BPM'])
 
     def get_max(self, items):
