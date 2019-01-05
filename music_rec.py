@@ -34,7 +34,7 @@ GENRE_INDEX = {
     'Dance': 9,
     'Celtic': 10,
     'Game': 11,
-    'Clasical': 12,
+    'Classical': 12,
     'Industrial': 13
 }
 
