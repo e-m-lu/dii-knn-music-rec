@@ -34,8 +34,7 @@ GENRE_INDEX = {
     'Dance': 9,
     'Celtic': 10,
     'Game': 11,
-    'Classical': 12,
-    'Industrial': 13
+    'Industrial': 12
 }
 
 MODE_HRS = [55, 65, 75, 85, 95] # values for target HR levels
