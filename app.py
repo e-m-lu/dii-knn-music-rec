@@ -11,7 +11,8 @@ import tkinter.messagebox
 import numpy as np
 import pandas as pd
 
-data_file = '100randomsongs.csv' # data file, must be a csv file
+X_COLS = ['Dancability', 'Energy', 'Valance', 'Acousticness', 'Instrumentalness', 'Liveness', 'Speechiness']
+Y_COL = 'HR perc'
 
 MODE_NAMES = [
     'very light (50-60)',
@@ -21,29 +22,15 @@ MODE_NAMES = [
     'maximum (90-100)'
 ]
 
-GENRE_INDEX = {
-    'Musical': 0,
-    'Pop': 1,
-    'Rap': 2,
-    'Indie': 3,
-    'Rock': 4,
-    'Jazz': 5,
-    'Seasonal': 6,
-    'Satire': 7,
-    'Classical': 8,
-    'Dance': 9,
-    'Celtic': 10,
-    'Game': 11,
-    'Industrial': 12
-}
 
-MODE_HRS = [55, 65, 75, 85, 95] # values for target HR levels
+MODE_HRS = [50, 60, 70, 80, 90] # values for target HR levels
 
-K = 30 # number of selected nearest neighbours (music list)
 
 class MusicRecommender(object):
-    def __init__(self, data_file):
+    def __init__(self, data_file, feature_dist, best_k):
         self.data_file = data_file
+        self.feature_dist = feature_dist
+        self.best_k = best_k
         self.root = tk.Tk()
         self.root.title('Music Recommender')
         self.v_age = tk.IntVar()
@@ -53,9 +40,7 @@ class MusicRecommender(object):
         self.v_playing = tk.StringVar()
         self.v_playing.set('Playing nothing')
         self.user_prefer = {
-            'music': {},
-            'Genre_onehot': np.zeros(len(GENRE_INDEX)),
-            'BPM_norm': 0.5
+            'music': {}
         }
         self.cur_music_id = None
         self.learning_rate = 0.1
@@ -108,10 +93,6 @@ class MusicRecommender(object):
     def command_like(self):
         """ command implementation for like button """
         self.user_prefer['music'][self.cur_music_id] = 2
-        bpm_diff = self.data[self.cur_music_id]['BPM_norm'] - self.user_prefer['BPM_norm']
-        self.user_prefer['BPM_norm'] += self.learning_rate * bpm_diff
-        genre_diff = self.data[self.cur_music_id]['Genre_onehot'] - self.user_prefer['Genre_onehot']
-        self.user_prefer['Genre_onehot'] += self.learning_rate * genre_diff
         print('probabilty of %s is improved' % self.cur_music_id)
         print('user prefer: %s' % self.user_prefer)
 
@@ -127,38 +108,27 @@ class MusicRecommender(object):
         data = {}
         df = pd.read_csv(self.data_file)
         df_dict = df.to_dict()
-        bpms = []
-        hrs = []
         for i, ID in df_dict['ID'].items():
             data[ID] = {
                 'ID': ID,
                 'Genre': df_dict['Genre'][i],
-                'BPM': df_dict['BPM'][i],
-                'HR': df_dict['HR song is enjoyed at'][i],
-                'Genre_onehot': np.zeros(len(GENRE_INDEX))
+                'BPM': df_dict['Tempo'][i],
+                'HR': df_dict['HR'][i],
             }
-            bpms.append(df_dict['BPM'][i])
-            hrs.append(df_dict['HR song is enjoyed at'][i])
-        bpm_min, bpm_max = float(min(bpms)), float(max(bpms))
-        self.hr_min, self.hr_max = float(min(hrs)), float(max(hrs))
-        for ID, v in data.items():
-            data[ID]['BPM_norm'] = (data[ID]['BPM'] - bpm_min) / (bpm_max - bpm_min)
-            data[ID]['HR_norm'] = (data[ID]['HR'] - self.hr_min) / (self.hr_max - self.hr_min)
-            data[ID]['Genre_onehot'][GENRE_INDEX[data[ID]['Genre'].strip()]] = 1.
+            # 0~1 features
+            for col in X_COLS:
+                data[ID][col] = df_dict[col][i]
         self.data = data
 
-    def get_recommendation(self, hr, k):
+    def get_recommendation(self, feature, k):
         """ get a recommended music list
         Returns
             a list of tuple (ID, music)
         """
-        def __score(v, hr):
-            hr_se = (v['HR_norm'] - (hr - self.hr_min) / (self.hr_max - self.hr_min))**2
-            bpm_se = (v['BPM_norm'] - self.user_prefer['BPM_norm'])**2
-            genre_diff = (v['Genre_onehot'] - self.user_prefer['Genre_onehot'])
-            genre_se = genre_diff.T.dot(genre_diff)
-            return math.sqrt(hr_se + bpm_se + genre_se)
-        return sorted(self.data.items(), key=lambda x: __score(x[1], hr))[:k]
+        def __score(v, feature):
+            se_sum = sum([(v[k] - fea)**2 for k, fea in feature.items()])
+            return math.sqrt(se_sum)
+        return sorted(self.data.items(), key=lambda x: __score(x[1], feature))[:k]
 
     def next_music(self):
         """ obtain the next music
@@ -168,7 +138,8 @@ class MusicRecommender(object):
         max_hr = 220 - self.v_age.get()
         target_hr = MODE_HRS[self.v_target_hr_level.get()]
         hr = target_hr * max_hr / 100.
-        playlist = self.get_recommendation(hr, K)
+        feature = self.feature_dist[target_hr]
+        playlist = self.get_recommendation(feature, self.best_k)
         music_prob = {ID: random.random() for ID, music in playlist}
         for ID, prefer_score in self.user_prefer['music'].items():
             if ID not in music_prob:
@@ -195,5 +166,24 @@ class MusicRecommender(object):
         return cand
 
 
+def gen_feature_distribution(data_file):
+    """ display features per HR perc """
+    df = pd.read_csv(data_file)
+    feature_dist = {}
+    labels = sorted(df[Y_COL].unique())
+    continuous_features = X_COLS
+    for label in labels:
+        feature = {}
+        df_hrp = df[df[Y_COL]==label]
+        for fea in X_COLS:
+            feature[fea] = df_hrp[fea].mean()
+        feature_dist[label] = feature
+    return feature_dist
+
+
 if __name__ == '__main__':
-    MusicRecommender(data_file)
+    data_file = sys.argv[1]
+    best_k = 9 #int(sys.argv[2])
+    feature_dist = gen_feature_distribution(data_file)
+    print('Distribution of 0~1 features: %s' % feature_dist)
+    MusicRecommender(data_file, feature_dist, best_k)
