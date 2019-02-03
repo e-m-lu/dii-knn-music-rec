@@ -29,7 +29,7 @@ def split_train_test(df):
     return X_train, y_train, X_test, y_test
 
 
-def train_predict(X_train, y_train, X_test, y_test, k=5, weights='uniform'):
+def train_predict(X_train, y_train, X_test, y_test, k=9, weights='uniform'):
     model = KNeighborsClassifier(n_neighbors=k, weights=weights)
     model.fit(X_train, y_train)
     y_hat = model.predict(X_test)
@@ -64,11 +64,6 @@ def run_elbow(df):
         print('k=%d sse=%.4f' % (k, sse))
     print()
     plt.figure()
-    plt.plot(range(1, 41), sse_list)
-    plt.xlabel('k')
-    plt.ylabel('SSE')
-    plt.title('elbow method: k=1 to 40')
-    plt.figure()
     plt.plot(range(2, 41), sse_list[1:])
     plt.xlabel('k')
     plt.ylabel('SSE')
@@ -76,7 +71,7 @@ def run_elbow(df):
 
 
 def inverse_distance_weighted_vote(distances):
-    return [1. / d**2 for d in distances]
+    return [1. / d for d in distances]
 
 
 def run_inverse_distance_weighted_vote(X_train, y_train, X_test, y_test):
@@ -88,12 +83,14 @@ def run_inverse_distance_weighted_vote(X_train, y_train, X_test, y_test):
         accuracy = sum(y_hat == y_test) / float(len(y_hat))
         accuracy_list.append(accuracy)
         print('k=%d accuracy=%.4f' % (k, accuracy))
+    """
     print()
     plt.figure()
     plt.plot(range(1, 41), accuracy_list)
     plt.xlabel('k')
     plt.ylabel('Accuracy of prediction')
     plt.title('Evaluation (Inverse distance-weighted voting): k from 1 to 40')
+    """
 
 
 def display_dist_features(df):
@@ -130,7 +127,7 @@ def get_best_k(df):
     best_acc = np.max(accuracy_list)
     return best_k, best_acc
 
-'''
+
 def get_best_k_knn(df):
     accuracy_list = [0] * 40
     N = 100
@@ -141,6 +138,7 @@ def get_best_k_knn(df):
             accuracy = sum(y_hat == y_test) / float(len(y_hat))
             accuracy_list[k-1] += accuracy
     accuracy_list = [acc_sum / N for acc_sum in accuracy_list]
+    """
     plt.figure()
     plt.plot(range(1, 41), accuracy_list)
     plt.xlabel('k')
@@ -148,12 +146,12 @@ def get_best_k_knn(df):
     plt.title('Evaluation (knn): k from 1 to 40')
     best_k = np.argmax(accuracy_list) + 1
     best_acc = np.max(accuracy_list)
-    return best_k, best_acc
-'''
+    """
+
 
 def main(data_file):
     """ entry """
-    df = pd.read_excel(data_file)
+    df = pd.read_csv(data_file)
     X_train, y_train, X_test, y_test = split_train_test(df)
     run_predict_evaluate(X_train, y_train, X_test, y_test)
     run_elbow(df)
